@@ -35,7 +35,6 @@ void setup() {
   delayMicroseconds(500 * 1000);  //added delay to give wireless ps2 module some time to startup
   PS2ControllerSetup();
   setupRSLK();                    //Sets the robot wheel pins
-
 }
 
 void loop() {
@@ -91,11 +90,8 @@ void PS2ButtonDetect() {
     Serial.println("X just changed");
   if (ps2x.ButtonPressed(PSB_SQUARE))             //will be TRUE if button was JUST released
     Serial.println("Square just released");
-
-
   delayMicroseconds(50 * 1000);
 }
-
 
 void Schmoove() {
 //Forward
@@ -104,7 +100,6 @@ void Schmoove() {
     enableMotor(BOTH_MOTORS);
     setMotorSpeed(BOTH_MOTORS,50);
   }
-  
   if(yneg<512){
     setMotorDirection(BOTH_MOTORS,MOTOR_DIR_BACKWARD)
   }
