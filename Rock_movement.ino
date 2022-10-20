@@ -1,4 +1,4 @@
-/* Code to get robot moving with the joystick.
+/* Code to get robot moving with the PS joysticks.
  * 
  */
 
@@ -52,17 +52,16 @@ void PS2ButtonDetect() {
 void Schmoove() {
 //Forward
   if(ypos>512){
-  setMotorDirection(BOTH_MOTORS,MOTOR_DIR_FORWARD)
-  enableMotor(BOTH_MOTORS);
-  setMotorSpeed(BOTH_MOTORS,50);}
+    setMotorDirection(BOTH_MOTORS,MOTOR_DIR_FORWARD)
+    enableMotor(BOTH_MOTORS);
+    setMotorSpeed(BOTH_MOTORS,50);
+  }
   
   if(yneg<512){
-  setMotorDirection(BOTH_MOTORS,MOTOR_DIR_BACKWARD)
-  
+    setMotorDirection(BOTH_MOTORS,MOTOR_DIR_BACKWARD)
+  }
+}
+void noSchmoove() {
   dutyc=75;
   speedsetting = dutyc / 100 * 255;
-}
-
-void noSchmoove() {
-  
 }
