@@ -44,10 +44,10 @@ void PS2ButtonDetect() {
   ps2x.read_gamepad();
 }
 
-void Schmoove() {
+void noSchmoove() {
   
 }
 
-void noSchmoove() {
+void Schmoove() {
   
 }
