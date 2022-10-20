@@ -1,62 +1,173 @@
-/* Code to get robot moving with the PS joysticks.
- * 
- */
+#include <Bump_Switch.h>
+#include <Encoder.h>
+#include <GP2Y0A21_Sensor.h>
+#include <QTRSensors.h>
+#include <Romi_Motor_Power.h>
+#include <RSLK_Pins.h>
+#include <SimpleRSLK.h>
+#include "PS2X_lib.h"  //for v1.6
+#include <Servo.h>
 
-// PS2 Controller Constants
-#include "PS2X_lib.h"  //for v1.6  //Adds PS2 controller library
-#include "SimpleRSLK.h"
-#define PS2_DAT   14   //P1.7 <-> brown wire
-#define PS2_CMD   15   //P1.6 <-> orange wire
-#define PS2_SEL   34   //P2.3 <-> yellow wire (also called attention)
-#define PS2_CLK   35   //P6.7 <-> blue wire
-PS2X ps2x;             // create PS2 Controller Class
+/*
+   PS2 Controller example from the PS2_Lib
+   2021-10-08: Refactored for MSP432P401R ZJE
+               -Changed pins to good defaults for use with RSLK
+               -changed all delay() to delayMicroseconds
+   Original code: https://github.com/madsci1016/Arduino-PS2X
+   Documentation: http://www.billporter.info/2010/06/05/playstation-2-controller-arduino-library-v1-0/
 
-//Robot movement variables
-#include "SimpleRSLK.h"                 //Robot library
-uint16_t sensorVal[LS_NUM_SENSORS];     
-uint16_t sensorCalVal[LS_NUM_SENSORS];  
-uint16_t sensorMaxVal[LS_NUM_SENSORS];  
-uint16_t sensorMinVal[LS_NUM_SENSORS];  
+   If you are using the PS2 bluetooth dongle, ensure that your
+   controller turned on before the program starts
+*/
 
-//DC variables
-int speedsetting=0;
-float dutycycle=0;
+/******************************************************************
+   set pins connected to PS2 controller:
+     - 1e column: original
+     - 2e colmun: Stef?
+   replace pin numbers by the ones you use
+ ******************************************************************/
+//ZJE: Modified from Bill's example to use MSP432P401R pins not taken by the
+//RSLK Feel free to use other pins that not used by the RSLK, these were just
+//chosen for neatness
+#define PS2_DAT         14 //P1.7 <-> brown wire
+#define PS2_CMD         15 //P1.6 <-> orange wire
+#define PS2_SEL         34 //P2.3 <-> yellow wire (also called attention)
+#define PS2_CLK         35 //P6.7 <-> blue wire
+#define PS2X_DEBUG
+#define PS2X_COM_DEBUG
 
-//Defines the states
-#define STOP    0
-#define GO      1
-int STATE = STOP;
-int yneg = 0;
-int ypos = 0;
+/******************************************************************
+   select modes of PS2 controller:
+     - pressures = analog reading of push-butttons
+     - rumble    = motor rumbling
+   uncomment 1 of the lines for each mode selection
+ ******************************************************************/
+//#define pressures   true
+#define pressures   false
+//#define rumble      true
+#define rumble      false
+
+PS2X ps2x; // create PS2 Controller Class
+Servo gripper;
+
+//right now, the library does NOT support hot pluggable controllers, meaning
+//you must always either restart your board after you connect the controller,
+//or call config_gamepad(pins) again after connecting the controller.
+
+int error = 0;
+byte type = 0;
+byte vibrate = 0;
+
+#define IDLE 4
+#define OPEN 5
+#define CLOSE 6
+
+int STATE = IDLE;
+#define MS 1000
 
 void setup() {
-  Serial.begin(57600);            //Prints to serial monitor while usb is connected
-  Serial1.begin(57600);           //Prints to serial monitor through bluetooth
-  delayMicroseconds(500 * 1000);  //added delay to give wireless ps2 module some time to startup
-  PS2ControllerSetup();
-  setupRSLK();                    //Sets the robot wheel pins
+  Serial.begin(57600); //ZJE: changed from Arduino deafult of 9600
+  gripper.attach(SRV_0);
+  gripper.write(5);
+  Serial.println("angle = 5");
+  delayMicroseconds(500 * 1000); //added delay to give wireless ps2 module some time to startup, before configuring it
+  //setup pins and settings: GamePad(clock, command, attention, data, Pressures?, Rumble?) check for error
+  error = 1;
+  while (error) {
+    error = ps2x.config_gamepad(PS2_CLK, PS2_CMD, PS2_SEL, PS2_DAT, pressures, rumble);
+    if (error == 0) {
+      Serial.print("Found Controller, configured successful ");
+      Serial.print("pressures = ");
+      if (pressures)
+        Serial.println("true ");
+      else
+        Serial.println("false");
+      Serial.print("rumble = ");
+      if (rumble)
+        Serial.println("true)");
+      else
+        Serial.println("false");
+      Serial.println("Try out all the buttons, X will vibrate the controller, faster as you press harder;");
+      Serial.println("holding L1 or R1 will print out the analog stick values.");
+      Serial.println("Note: Go to www.billporter.info for updates and to report bugs.");
+    }  else if (error == 1)
+      Serial.println("No controller found, check wiring, see readme.txt to enable debug. visit www.billporter.info for troubleshooting tips");
+    else if (error == 2)
+      Serial.println("Controller found but not accepting commands. see readme.txt to enable debug. Visit www.billporter.info for troubleshooting tips");
+    else if (error == 3)
+      Serial.println("Controller refusing to enter Pressures mode, may not support it. ");
+    delayMicroseconds(1000 * 1000);
+  }
+
+  //  Serial.print(ps2x.Analog(1), HEX);
+  type = ps2x.readType();
+  switch (type) {
+    case 0:
+      Serial.print("Unknown Controller type found ");
+      break;
+    case 1:
+      Serial.print("DualShock Controller found ");
+      break;
+    case 2:
+      Serial.print("GuitarHero Controller found ");
+      break;
+    case 3:
+      Serial.print("Wireless Sony DualShock Controller found ");
+      break;
+  }
 }
 
 void loop() {
-    PS2ButtonDetect();
-    switch (STATE) {
-      case STOP:
-        Serial.println("I am not moving.");
-        noSchmoove();
-        break;
-      case GO:
-        Serial.println("I am moving.");
-        Schmoove();
-        break;
-    }
+  detect();
+  switch (STATE) {
+    case IDLE:
+      IdleState();
+      break;
+    case CLOSE:
+      CloseState();
+      break;
+    case OPEN:
+      OpenState();
+      break;
+    default:
+      break;
+  }
 }
 
-void PS2ControllerSetup(){
-  //setup pins and settings: GamePad(clock, command, attention, data, Pressures?, Rumble?)
-  ps2x.config_gamepad(PS2_CLK, PS2_CMD, PS2_SEL, PS2_DAT, pressures, rumble);
+void CloseState() {
+  gripper.write(30);
+  Serial.println("angle = 30");
+  delayMicroseconds(1000 * MS); //can’t use delay
+  STATE = IDLE;
 }
 
-void PS2ButtonDetect() {
+void OpenState() {
+    gripper.write(160);
+    Serial.println("angle = 160");
+    delayMicroseconds(1000 * MS); //can’t use delay
+  if (ps2x.ButtonPressed(PSB_TRIANGLE)) {
+    STATE = CLOSE;
+  }
+  else {
+    STATE = OPEN;
+  }
+}
+
+void IdleState() {
+  if (ps2x.ButtonPressed(PSB_SQUARE))  {           //will be TRUE if button was JUST released
+    STATE = OPEN;
+  }
+  else {
+    STATE = IDLE;
+  }
+}
+/* You must Read Gamepad to get new values and set vibration values
+   ps2x.read_gamepad(small motor on/off, larger motor strenght from 0-255)
+   if you don't enable the rumble, use ps2x.read_gamepad(); with no values
+   You should call this at least once a second
+*/
+
+void detect() {
   if (error == 1) { //skip loop if no controller found
     return;
   }
@@ -90,21 +201,6 @@ void PS2ButtonDetect() {
     Serial.println("X just changed");
   if (ps2x.ButtonPressed(PSB_SQUARE))             //will be TRUE if button was JUST released
     Serial.println("Square just released");
-  delayMicroseconds(50 * 1000);
-}
-
-void Schmoove() {
-//Forward
-  if(ypos>512){
-    setMotorDirection(BOTH_MOTORS,MOTOR_DIR_FORWARD)
-    enableMotor(BOTH_MOTORS);
-    setMotorSpeed(BOTH_MOTORS,50);
   }
-  if(yneg<512){
-    setMotorDirection(BOTH_MOTORS,MOTOR_DIR_BACKWARD)
-  }
-}
-void noSchmoove() {
-  dutyc=75;
-  speedsetting = dutyc / 100 * 255;
+    delayMicroseconds(50 * 1000);
 }
