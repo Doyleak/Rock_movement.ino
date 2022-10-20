@@ -19,7 +19,7 @@ IRData IRresults;
 
 
 void setup() {
-
+  Serial.println("Hello World");
   Serial.begin(57600);
   delayMicroseconds(100*MS);
   initTinyIRReceiver();
