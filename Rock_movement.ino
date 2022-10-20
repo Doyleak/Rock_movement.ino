@@ -1,4 +1,4 @@
-/* Code to get robot moving with the joystick.
+/* Code to get robot moving with the PS joysticks.
  * 
  */
 
