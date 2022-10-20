@@ -30,8 +30,8 @@
 PS2X ps2x;        //PS2 Controller Class and object
 Servo gripper;    //Declares Gripper as the servo object
 
-uint16_t normalSpeed = 10;
-uint16_t fastSpeed = 20;
+uint16_t normalSpeed = 20;
+uint16_t fastSpeed = 40;
 
 int error = 0;
 byte type = 0;
@@ -156,7 +156,7 @@ void forwardState(){
   Serial1.println("Moving forward.");
   enableMotor(BOTH_MOTORS);
   setMotorDirection(BOTH_MOTORS,MOTOR_DIR_FORWARD);
-  setMotorSpeed(BOTH_MOTORS,normalSpeed);
+  setMotorSpeed(BOTH_MOTORS,fastSpeed);
   delayMicroseconds(10 * MS); //can’t use delay
   STATE = IDLE;   //Switches state back to IDLE
 }
@@ -167,7 +167,7 @@ void backwardState(){
   Serial1.println("Moving backward.");
   enableMotor(BOTH_MOTORS);
   setMotorDirection(BOTH_MOTORS,MOTOR_DIR_BACKWARD);
-  setMotorSpeed(BOTH_MOTORS,normalSpeed);
+  setMotorSpeed(BOTH_MOTORS,fastSpeed);
   delayMicroseconds(10 * MS); //can’t use delay
   STATE = IDLE;
 }
@@ -176,10 +176,11 @@ void backwardState(){
 void spinLeft(){
   Serial.println("Spinning Left.");
   Serial1.println("Spinning Left.");
-  enableMotor(RIGHT_MOTOR);
-  disableMotor(LEFT_MOTOR);
+  enableMotor(BOTH_MOTORS);
   setMotorDirection(RIGHT_MOTOR, MOTOR_DIR_FORWARD);
   setMotorSpeed(RIGHT_MOTOR,fastSpeed);
+  setMotorDirection(LEFT_MOTOR, MOTOR_DIR_BACKWARD);
+  setMotorSpeed(LEFT_MOTOR,fastSpeed);
   delayMicroseconds(10 * MS); //can’t use delay
   STATE = IDLE;
 }
@@ -188,10 +189,11 @@ void spinLeft(){
 void spinRight(){
   Serial.println("Spinning Right.");
   Serial1.println("Spinning Right.");
-  enableMotor(LEFT_MOTOR);
-  disableMotor(RIGHT_MOTOR);
+  enableMotor(BOTH_MOTORS);
   setMotorDirection(LEFT_MOTOR, MOTOR_DIR_FORWARD);
   setMotorSpeed(LEFT_MOTOR,fastSpeed);
+  setMotorDirection(RIGHT_MOTOR, MOTOR_DIR_BACKWARD);
+  setMotorSpeed(RIGHT_MOTOR,fastSpeed);
   delayMicroseconds(10 * MS);
   STATE = IDLE;
 }
@@ -201,6 +203,7 @@ void turningLeft(){
   Serial.println("Turning Left");
   Serial1.println("Turning Left");
   enableMotor(BOTH_MOTORS);
+  setMotorDirection(BOTH_MOTORS,MOTOR_DIR_FORWARD);
   setMotorSpeed(LEFT_MOTOR,normalSpeed);
   setMotorSpeed(RIGHT_MOTOR,fastSpeed);
   delayMicroseconds(10 * MS);
@@ -212,6 +215,7 @@ void turningRight(){
   Serial.println("Turning Right");
   Serial1.println("Turning Right");
   enableMotor(BOTH_MOTORS);
+  setMotorDirection(BOTH_MOTORS,MOTOR_DIR_FORWARD);
   setMotorSpeed(RIGHT_MOTOR,normalSpeed);
   setMotorSpeed(LEFT_MOTOR,fastSpeed);
   delayMicroseconds(10 * MS);
