@@ -8,11 +8,12 @@
 #include <Servo.h>
 #include <TinyIR.h>
 
-#define INCLUDE_REPEATS
-
 #define MS 1000
 
 int IRpin = 33;
+
+uint16_t normalSpeed = 10;
+uint16_t fastSpeed = 20;
 
 IRData IRresults;
 Servo gripper;
@@ -22,12 +23,12 @@ void setup() {
   delayMicroseconds(100*MS);
   initTinyIRReceiver();
   gripper.attach(SRV_0);
+  gripper.write(30);
   pinMode(IRpin, INPUT);
   setupRSLK();
 }
 
 void loop() {
-uint16_t normalSpeed = 10;
   if(decodeIR(&IRresults)){
     Serial.print(IRresults.command, HEX);
     translateIR();
@@ -35,61 +36,56 @@ uint16_t normalSpeed = 10;
 }
 
 void translateIR(){ 
-  uint16_t normalSpeed = 10;
-  uint16_t fastSpeed = 20;
-  Serial.print("translate IR: ");
   switch(IRresults.command){
     case 0x45:
-      Serial.println("POWER");
+      Serial.println("Spin Left");
       enableMotor(RIGHT_MOTOR);
       disableMotor(LEFT_MOTOR);
       setMotorDirection(RIGHT_MOTOR,MOTOR_DIR_FORWARD);
       setMotorSpeed(RIGHT_MOTOR,normalSpeed);
       break;
     case 0x46:
-      Serial.println("VOL+");
+      Serial.println("Move Forward");
       enableMotor(BOTH_MOTORS);
       setMotorDirection(BOTH_MOTORS,MOTOR_DIR_FORWARD);
-       setMotorSpeed(LEFT_MOTOR,normalSpeed);
-       setMotorSpeed(RIGHT_MOTOR,normalSpeed);
+       setMotorSpeed(BOTH_MOTORS,normalSpeed);
       break;
     case 0x47:
-      Serial.println("FUNC");
+      Serial.println("Spin Right");
       enableMotor(LEFT_MOTOR);
       disableMotor(RIGHT_MOTOR);
       setMotorDirection(LEFT_MOTOR, MOTOR_DIR_FORWARD);
       setMotorSpeed(LEFT_MOTOR,normalSpeed);
       break;
     case 0x44:
-      Serial.println("LEFT");
+      Serial.println("Turn Left");
       enableMotor(BOTH_MOTORS);
       setMotorSpeed(LEFT_MOTOR,normalSpeed);
       setMotorSpeed(RIGHT_MOTOR,fastSpeed);
       break;
     case 0x40:
-      Serial.println("PLAY");
+      Serial.println("Stop Moving");
       disableMotor(BOTH_MOTORS);
       break;
     case 0x43:
-      Serial.println("RIGHT");
+      Serial.println("Turn Right");
       enableMotor(BOTH_MOTORS);
       setMotorSpeed(LEFT_MOTOR,fastSpeed);
       setMotorSpeed(RIGHT_MOTOR,normalSpeed);
       break;
     case 0x15:
-       Serial.println("VOL-");
+       Serial.println("Moving Backwards");
        enableMotor(BOTH_MOTORS);
        setMotorDirection(BOTH_MOTORS,MOTOR_DIR_BACKWARD);
-       setMotorSpeed(LEFT_MOTOR,normalSpeed);
-       setMotorSpeed(RIGHT_MOTOR,normalSpeed);
+       setMotorSpeed(BOTH_MOTORS,normalSpeed);
       break;
     case 0x19:
-      Serial.println("EQ");
-      gripper.write(150);
+      Serial.println("Open Claw");
+      gripper.write(160);
       break;
     case 0xD:
-      Serial.println("ST");
-      gripper.write(40);
+      Serial.println("Close Claw");
+      gripper.write(30);
       break;
     default:
       break;
