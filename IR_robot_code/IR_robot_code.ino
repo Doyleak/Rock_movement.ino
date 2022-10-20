@@ -6,7 +6,6 @@
 #include <RSLK_Pins.h>
 #include <SimpleRSLK.h>
 #include <Servo.h>
-
 #include <TinyIR.h>
 
 #define INCLUDE_REPEATS
@@ -15,36 +14,24 @@
 
 int IRpin = 33;
 
-
 IRData IRresults;
 Servo gripper;
 
-
 void setup() {
-
   Serial.begin(57600);
   delayMicroseconds(100*MS);
   initTinyIRReceiver();
   gripper.attach(SRV_0);
-
   pinMode(IRpin, INPUT);
-
   setupRSLK();
-
 }
 
 void loop() {
 uint16_t normalSpeed = 10;
-  /*enableMotor(BOTH_MOTORS);
-  setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD);
-  setMotorSpeed(LEFT_MOTOR,normalSpeed);
-  setMotorSpeed(RIGHT_MOTOR,normalSpeed);
-  */
   if(decodeIR(&IRresults)){
     Serial.print(IRresults.command, HEX);
     translateIR();
   }
-  
 }
 
 void translateIR(){ 
@@ -66,7 +53,6 @@ void translateIR(){
        setMotorSpeed(LEFT_MOTOR,normalSpeed);
        setMotorSpeed(RIGHT_MOTOR,normalSpeed);
       break;
-      
     case 0x47:
       Serial.println("FUNC");
       enableMotor(LEFT_MOTOR);
@@ -90,23 +76,12 @@ void translateIR(){
       setMotorSpeed(LEFT_MOTOR,fastSpeed);
       setMotorSpeed(RIGHT_MOTOR,normalSpeed);
       break;
-    case 0x9:
-      Serial.println("UP");
-      break;
     case 0x15:
        Serial.println("VOL-");
        enableMotor(BOTH_MOTORS);
        setMotorDirection(BOTH_MOTORS,MOTOR_DIR_BACKWARD);
        setMotorSpeed(LEFT_MOTOR,normalSpeed);
        setMotorSpeed(RIGHT_MOTOR,normalSpeed);
-      
-      break;
-      
-    case 0x7:
-      Serial.println("DOWN");
-      break;
-    case 0x16:
-      Serial.println("0");
       break;
     case 0x19:
       Serial.println("EQ");
@@ -116,35 +91,7 @@ void translateIR(){
       Serial.println("ST");
       gripper.write(40);
       break;
-    case 0xC:
-      Serial.println("1");
-      break;
-    case 0x18:
-      Serial.println("2");
-      break;
-    case 0x5E:
-      Serial.println("3");
-      break;
-    case 0x8:
-      Serial.println("4");
-      break;
-    case 0x1C:
-      Serial.println("5");
-      break;
-    case 0x5A:
-      Serial.println("6");
-      break;
-    case 0x42:
-      Serial.println("7");
-      break;
-    case 0x52:
-      Serial.println("8");
-      break;
-    case 0x4A:
-      Serial.println("9");
-      break;
     default:
-      Serial.println("other button");
       break;
   }
   delayMicroseconds(100*MS);
