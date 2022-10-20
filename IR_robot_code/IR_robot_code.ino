@@ -12,8 +12,8 @@
 
 int IRpin = 33;
 
-uint16_t normalSpeed = 10;
-uint16_t fastSpeed = 20;
+uint16_t normalSpeed = 20;
+uint16_t fastSpeed = 40;
 
 IRData IRresults;
 Servo gripper;
@@ -42,25 +42,27 @@ void translateIR(){
     case 0x45:
       Serial.println("Spin Left");
       Serial1.println("Spin Left");
-      enableMotor(RIGHT_MOTOR);
-      disableMotor(LEFT_MOTOR);
+      enableMotor(BOTH_MOTORS);
       setMotorDirection(RIGHT_MOTOR,MOTOR_DIR_FORWARD);
-      setMotorSpeed(RIGHT_MOTOR,normalSpeed);
+      setMotorSpeed(RIGHT_MOTOR,fastSpeed);
+      setMotorDirection(LEFT_MOTOR,MOTOR_DIR_BACKWARD);
+      setMotorSpeed(LEFT_MOTOR,fastSpeed);
       break;
     case 0x46:
       Serial.println("Move Forward");
       Serial1.println("Move Forward");
       enableMotor(BOTH_MOTORS);
       setMotorDirection(BOTH_MOTORS,MOTOR_DIR_FORWARD);
-       setMotorSpeed(BOTH_MOTORS,normalSpeed);
+       setMotorSpeed(BOTH_MOTORS,fastSpeed);
       break;
     case 0x47:
       Serial.println("Spin Right");
       Serial1.println("Spin Right");
-      enableMotor(LEFT_MOTOR);
-      disableMotor(RIGHT_MOTOR);
-      setMotorDirection(LEFT_MOTOR, MOTOR_DIR_FORWARD);
-      setMotorSpeed(LEFT_MOTOR,normalSpeed);
+      enableMotor(BOTH_MOTORS);
+      setMotorDirection(LEFT_MOTOR,MOTOR_DIR_FORWARD);
+      setMotorSpeed(LEFT_MOTOR,fastSpeed);
+      setMotorDirection(RIGHT_MOTOR,MOTOR_DIR_BACKWARD);
+      setMotorSpeed(RIGHT_MOTOR,fastSpeed);
       break;
     case 0x44:
       Serial.println("Turn Left");
@@ -86,7 +88,7 @@ void translateIR(){
       Serial1.println("Moving Backwards");
       enableMotor(BOTH_MOTORS);
       setMotorDirection(BOTH_MOTORS,MOTOR_DIR_BACKWARD);
-      setMotorSpeed(BOTH_MOTORS,normalSpeed);
+      setMotorSpeed(BOTH_MOTORS,fastSpeed);
       break;
     case 0x19:
       Serial.println("Open Claw");
