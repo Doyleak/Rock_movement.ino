@@ -5,10 +5,11 @@
 #include <Romi_Motor_Power.h>
 #include <RSLK_Pins.h>
 #include <SimpleRSLK.h>
+#include <Servo.h>
 
 #include <TinyIR.h>
 
-
+#define INCLUDE_REPEATS
 
 #define MS 1000
 
@@ -16,6 +17,7 @@ int IRpin = 33;
 
 
 IRData IRresults;
+Servo gripper;
 
 
 void setup() {
@@ -23,21 +25,22 @@ void setup() {
   Serial.begin(57600);
   delayMicroseconds(100*MS);
   initTinyIRReceiver();
+  gripper.attach(SRV_0);
 
   pinMode(IRpin, INPUT);
 
   setupRSLK();
 
-  
 }
 
 void loop() {
-
-  uint16_t normalSpeed = 10;
-  enableMotor(BOTH_MOTORS);
-
-
- if(decodeIR(&IRresults)){
+uint16_t normalSpeed = 10;
+  /*enableMotor(BOTH_MOTORS);
+  setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD);
+  setMotorSpeed(LEFT_MOTOR,normalSpeed);
+  setMotorSpeed(RIGHT_MOTOR,normalSpeed);
+  */
+  if(decodeIR(&IRresults)){
     Serial.print(IRresults.command, HEX);
     translateIR();
   }
@@ -46,52 +49,57 @@ void loop() {
 
 void translateIR(){ 
   uint16_t normalSpeed = 10;
+  uint16_t fastSpeed = 20;
   Serial.print("translate IR: ");
   switch(IRresults.command){
     case 0x45:
       Serial.println("POWER");
+      enableMotor(RIGHT_MOTOR);
+      disableMotor(LEFT_MOTOR);
+      setMotorDirection(RIGHT_MOTOR,MOTOR_DIR_FORWARD);
+      setMotorSpeed(RIGHT_MOTOR,normalSpeed);
       break;
     case 0x46:
-      if(IRresults.isRepeat){               //ignores repeated button inputs
-        Serial.println( );
-      }
-      else{
       Serial.println("VOL+");
       enableMotor(BOTH_MOTORS);
       setMotorDirection(BOTH_MOTORS,MOTOR_DIR_FORWARD);
-      setMotorSpeed(LEFT_MOTOR,normalSpeed);
-      setMotorSpeed(RIGHT_MOTOR,normalSpeed);
- 
-      }  
+       setMotorSpeed(LEFT_MOTOR,normalSpeed);
+       setMotorSpeed(RIGHT_MOTOR,normalSpeed);
       break;
       
     case 0x47:
       Serial.println("FUNC");
+      enableMotor(LEFT_MOTOR);
+      disableMotor(RIGHT_MOTOR);
+      setMotorDirection(LEFT_MOTOR, MOTOR_DIR_FORWARD);
+      setMotorSpeed(LEFT_MOTOR,normalSpeed);
       break;
     case 0x44:
       Serial.println("LEFT");
+      enableMotor(BOTH_MOTORS);
+      setMotorSpeed(LEFT_MOTOR,normalSpeed);
+      setMotorSpeed(RIGHT_MOTOR,fastSpeed);
       break;
     case 0x40:
       Serial.println("PLAY");
+      disableMotor(BOTH_MOTORS);
       break;
     case 0x43:
       Serial.println("RIGHT");
+      enableMotor(BOTH_MOTORS);
+      setMotorSpeed(LEFT_MOTOR,fastSpeed);
+      setMotorSpeed(RIGHT_MOTOR,normalSpeed);
       break;
     case 0x9:
       Serial.println("UP");
       break;
     case 0x15:
-    
-      if(IRresults.isRepeat){               //ignores repeat but button press (cannot hold down button)
-      Serial.println( );
-      }
-      else{
        Serial.println("VOL-");
        enableMotor(BOTH_MOTORS);
        setMotorDirection(BOTH_MOTORS,MOTOR_DIR_BACKWARD);
        setMotorSpeed(LEFT_MOTOR,normalSpeed);
        setMotorSpeed(RIGHT_MOTOR,normalSpeed);
-      }
+      
       break;
       
     case 0x7:
@@ -102,9 +110,11 @@ void translateIR(){
       break;
     case 0x19:
       Serial.println("EQ");
+      gripper.write(150);
       break;
     case 0xD:
       Serial.println("ST");
+      gripper.write(40);
       break;
     case 0xC:
       Serial.println("1");
