@@ -55,6 +55,7 @@ int STATE = IDLE;   //Starts the robot in the IDLE case
 
 void setup() {
   Serial.begin(57600); //changed from Arduino deafult of 9600
+  Serial1.begin(57600);
   gripper.attach(SRV_0);
   gripper.write(5);
   setupRSLK();      //Sets up the DC motor pins (aka the wheel pins)
@@ -66,36 +67,50 @@ void setup() {
     if (error == 0) {
       Serial.print("Found Controller, configured successful ");
       Serial.print("pressures = ");
+      Serial1.print("Found Controller, configured successful ");
+      Serial1.print("pressures = ");
       if (pressures)
         Serial.println("true ");
+        Serial1.println("true ");
       else
         Serial.println("false");
-      Serial.print("rumble = ");
+        Serial.print("rumble = ");
+        Serial1.println("false");
+        Serial1.print("rumble = ");
       if (rumble)
         Serial.println("true)");
+        Serial1.println("true)");
       else
         Serial.println("false");
-    }  else if (error == 1)
-      Serial.println("No controller found, check wiring");
-    else if (error == 2)
-      Serial.println("Controller found but not accepting commands.");
-    else if (error == 3)
-      Serial.println("Controller refusing to enter Pressures mode, may not support it. ");
+        Serial1.println("false");
+      } else if (error == 1)
+        Serial.println("No controller found, check wiring");
+        Serial1.println("No controller found, check wiring");
+      else if (error == 2)
+        Serial.println("Controller found but not accepting commands.");
+        Serial1.println("Controller found but not accepting commands.");
+      else if (error == 3)
+        Serial.println("Controller refusing to enter Pressures mode, may not support it. ");
+        Serial1.println("Controller refusing to enter Pressures mode, may not support it. ");
     delayMicroseconds(1000 * 1000);
   }
   type = ps2x.readType();
   switch (type) {
     case 0:
       Serial.print("Unknown Controller type found ");
+      Serial1.print("Unknown Controller type found ");
       break;
     case 1:
       Serial.print("DualShock Controller found and ready to use.");
+      Serial1.print("DualShock Controller found and ready to use.");
       break;
     case 2:
       Serial.print("GuitarHero Controller found ");
+      Serial1.print("GuitarHero Controller found ");
       break;
     case 3:
       Serial.print("Wireless Sony DualShock Controller found ");
+      Serial1.print("Wireless Sony DualShock Controller found ");
       break;
   }
 }
@@ -138,6 +153,7 @@ void loop() {
 //Tells robot to move forward
 void forwardState(){
   Serial.println("Moving forward.");
+  Serial1.println("Moving forward.");
   enableMotor(BOTH_MOTORS);
   setMotorDirection(BOTH_MOTORS,MOTOR_DIR_FORWARD);
   setMotorSpeed(BOTH_MOTORS,normalSpeed);
@@ -148,6 +164,7 @@ void forwardState(){
 //Tells robot to move backward
 void backwardState(){
   Serial.println("Moving backward.");
+  Serial1.println("Moving backward.");
   enableMotor(BOTH_MOTORS);
   setMotorDirection(BOTH_MOTORS,MOTOR_DIR_BACKWARD);
   setMotorSpeed(BOTH_MOTORS,normalSpeed);
@@ -158,6 +175,7 @@ void backwardState(){
 //Tells robot to spin counter-clockwise
 void spinLeft(){
   Serial.println("Spinning Left.");
+  Serial1.println("Spinning Left.");
   enableMotor(RIGHT_MOTOR);
   disableMotor(LEFT_MOTOR);
   setMotorDirection(RIGHT_MOTOR, MOTOR_DIR_FORWARD);
@@ -169,6 +187,7 @@ void spinLeft(){
 //Tells robot to spin clockwise
 void spinRight(){
   Serial.println("Spinning Right.");
+  Serial1.println("Spinning Right.");
   enableMotor(LEFT_MOTOR);
   disableMotor(RIGHT_MOTOR);
   setMotorDirection(LEFT_MOTOR, MOTOR_DIR_FORWARD);
@@ -180,6 +199,7 @@ void spinRight(){
 //Tells robot to turn counter-clockwise
 void turningLeft(){
   Serial.println("Turning Left");
+  Serial1.println("Turning Left");
   enableMotor(BOTH_MOTORS);
   setMotorSpeed(LEFT_MOTOR,normalSpeed);
   setMotorSpeed(RIGHT_MOTOR,fastSpeed);
@@ -190,6 +210,7 @@ void turningLeft(){
 //Tells robot to turn clockwise
 void turningRight(){
   Serial.println("Turning Right");
+  Serial1.println("Turning Right");
   enableMotor(BOTH_MOTORS);
   setMotorSpeed(RIGHT_MOTOR,normalSpeed);
   setMotorSpeed(LEFT_MOTOR,fastSpeed);
@@ -200,6 +221,7 @@ void turningRight(){
 void CloseState() {
   gripper.write(30);
   Serial.println("Close Claw");
+  Serial1.println("Close Claw");
   delayMicroseconds(10 * MS);
   STATE = IDLE;
 }
@@ -207,6 +229,7 @@ void CloseState() {
 void OpenState() {
   gripper.write(160);
   Serial.println("Open Claw");
+  Serial1.println("Open Claw");
   delayMicroseconds(10 * MS);
   STATE = IDLE;
 }
