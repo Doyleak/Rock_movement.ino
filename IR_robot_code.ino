@@ -6,6 +6,7 @@
 #include <RSLK_Pins.h>
 #include <SimpleRSLK.h>
 #include <Servo.h>
+
 #include <TinyIR.h>
 
 #define INCLUDE_REPEATS
@@ -14,20 +15,28 @@
 
 int IRpin = 33;
 int sharppin = 23;
+
 int stopDistance = 5;
+
 
 IRData IRresults;
 Servo gripper;
 
+
+
 void setup() {
+
   Serial.begin(57600);
   Serial1.begin(57600);
   delayMicroseconds(100 * MS);
   initTinyIRReceiver();
   gripper.attach(SRV_0);
+
   pinMode(IRpin, INPUT);
   pinMode(sharppin, INPUT);
+
   setupRSLK();
+
 }
 
 void loop() {
@@ -63,8 +72,22 @@ void autonomous() {
   }
   else {
     disableMotor(BOTH_MOTORS);
+    gripper.write(150);
   }
 }
+
+void AUTO(){
+        decodeIR(&IRresults);
+      int button = IRresults.command;
+      Serial.println(button);
+      if(button == 28){
+       int STATE = 0x1C;
+      }
+      else{
+       int STATE = IRresults.command;
+      }
+}
+
 
 void translateIR() {
   uint16_t normalSpeed = 20;
@@ -86,6 +109,7 @@ void translateIR() {
       setMotorSpeed(LEFT_MOTOR, normalSpeed);
       setMotorSpeed(RIGHT_MOTOR, normalSpeed);
       break;
+
     case 0x47:
       Serial.println("FUNC");
       enableMotor(LEFT_MOTOR);
@@ -119,6 +143,7 @@ void translateIR() {
       setMotorSpeed(LEFT_MOTOR, normalSpeed);
       setMotorSpeed(RIGHT_MOTOR, normalSpeed);
       break;
+
     case 0x7:
       Serial.println("DOWN");
       break;
@@ -145,7 +170,6 @@ void translateIR() {
     case 0x8:
       Serial.println("4");
       break;
-    //Switch into autonomous mode when 5 is pressed
     case 0x1C:
       Serial.println("5");
       Serial.println("Now in Autonomous Mode");
