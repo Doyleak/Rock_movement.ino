@@ -1,4 +1,5 @@
 /*  This code gets the Gripper and Playstation controller working.
+ *  Joystick currently does not work >:( Please Fix.
  *  Date: 10/20/22
  *  Author:Abigail Doyle
 */
