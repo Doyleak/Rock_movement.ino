@@ -59,3 +59,41 @@ linePosition = getLinePosition(sensorCalVal, lineMode);
   /* Disable both motors */
   disableMotor(BOTH_MOTORS);
 }
+bool isCalibrationComplete = false;
+void loop()
+{
+	uint16_t normalSpeed = 10;
+	uint16_t fastSpeed = 20;
+
+	/* Valid values are either:
+	 *  DARK_LINE  if your floor is lighter than your line
+	 *  LIGHT_LINE if your floor is darker than your line
+	 */
+	uint8_t lineColor = DARK_LINE;
+
+	/* Run this setup only once */
+	if(isCalibrationComplete == false) {
+		floorCalibration();
+		isCalibrationComplete = true;
+	}
+
+	readLineSensor(sensorVal);
+	readCalLineSensor(sensorVal,
+					  sensorCalVal,
+					  sensorMinVal,
+					  sensorMaxVal,
+					  lineColor);
+
+	uint32_t linePos = getLinePosition(sensorCalVal,lineColor);
+
+	if(linePos > 0 && linePos < 3000) {
+		setMotorSpeed(LEFT_MOTOR,normalSpeed);
+		setMotorSpeed(RIGHT_MOTOR,fastSpeed);
+	} else if(linePos > 3500) {
+		setMotorSpeed(LEFT_MOTOR,fastSpeed);
+		setMotorSpeed(RIGHT_MOTOR,normalSpeed);
+	} else {
+		setMotorSpeed(LEFT_MOTOR,normalSpeed);
+		setMotorSpeed(RIGHT_MOTOR,normalSpeed);
+	}
+}
