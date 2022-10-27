@@ -12,7 +12,7 @@ void setup() {
   Serial.begin(57600); Serial1.begin(57600);
   setupRSLK();
   setupWaitBtn(LP_LEFT_BTN);	//Left button on Launchpad
-  setupLed(RED_LED);			//Red led in rgb led
+  setupLed(RED_LED);		//Red led in rgb led
   clearMinMax(sensorMinVal,sensorMaxVal);
 }
 
@@ -35,7 +35,7 @@ void floorCalibration() {
 
 void simpleCalibrate() {
 	setMotorDirection(BOTH_MOTORS,MOTOR_DIR_FORWARD);	//Set both motors direction forward
-	enableMotor(BOTH_MOTORS);			//Enable both motors
+	enableMotor(BOTH_MOTORS);		//Enable both motors
 	setMotorSpeed(BOTH_MOTORS,20);		//Set both motors speed 20
 	for(int x = 0;x<100;x++){
 		readLineSensor(sensorVal);
