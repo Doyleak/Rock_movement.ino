@@ -220,8 +220,6 @@ void simpleCalibrate() {
   for (int x = 0; x < 100; x++) {
     readLineSensor(sensorVal);
     setSensorMinMax(sensorVal, sensorMinVal, sensorMaxVal);
-    readCalLineSensor(sensorVal, sensorCalVal, sensorMinVal, sensorMaxVal, 0);
-    linePosition = getLinePosition(sensorCalVal, lineMode);
   }
   disableMotor(BOTH_MOTORS);  //Disables both motors
 }
