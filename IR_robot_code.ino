@@ -40,8 +40,7 @@ int light = 0;
 bool isCalibrationComplete = false;
 
 void setup() {
-  Serial.begin(57600);
-  Serial1.begin(57600);
+  Serial.begin(57600);  Serial1.begin(57600);
   delayMicroseconds(100 * MS);
   initTinyIRReceiver();
   gripper.attach(SRV_0);
@@ -56,6 +55,7 @@ void setup() {
 }
 
 void loop() {
+  Light();
   if (isCalibrationComplete == false) {
     floorCalibration();
     isCalibrationComplete = true;
@@ -77,8 +77,8 @@ void autonomousLine(){
   readLineSensor(sensorVal);
   readCalLineSensor(sensorVal,sensorCalVal,sensorMinVal,sensorMaxVal,lineColor);
   linePos = getLinePosition(sensorCalVal,lineColor);
-  Serial.println(sensorCalVal[6]);
-  Serial.println(sensorCalVal[7]);
+  Serial.println(sensorCalVal[6]);    Serial1.println(sensorCalVal[6]);
+  Serial.println(sensorCalVal[7]);    Serial1.println(sensorCalVal[7]);
   int rightsensval = sensorCalVal[6];  
   if(linePos > 0 && linePos < 3000) {
     setMotorSpeed(LEFT_MOTOR,normalSpeed);
@@ -105,7 +105,7 @@ void autonomousDist() {
   uint16_t normalSpeed = 18;
   uint16_t fastSpeed = 30;
   int distance = analogRead(sharppin);
-  Serial.println(distance);
+  Serial.println(distance);   Serial1.println(distance);
   if (distance >= 600) {
     disableMotor(BOTH_MOTORS);
     delayMicroseconds(1000 * MS);
@@ -131,67 +131,67 @@ void autonomousDist() {
 }
 
 void translateIR() {
-  Serial.print("translate IR: ");
+  Serial.print("translate IR: ");   Serial1.print("translate IR: ");
   int STATE = IRresults.command;
   switch (STATE) {
     case 0x45:
-      Serial.println("POWER");
+      Serial.println("POWER");    Serial1.println("POWER");
       enableMotor(RIGHT_MOTOR);
       disableMotor(LEFT_MOTOR);
       setMotorDirection(RIGHT_MOTOR, MOTOR_DIR_FORWARD);
       setMotorSpeed(RIGHT_MOTOR, normalSpeed);
       break;
     case 0x46:
-      Serial.println("VOL+");
+      Serial.println("VOL+");   Serial1.println("VOL+");
       enableMotor(BOTH_MOTORS);
       setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD);
       setMotorSpeed(LEFT_MOTOR, normalSpeed);
       setMotorSpeed(RIGHT_MOTOR, normalSpeed);
       break;
     case 0x47:
-      Serial.println("FUNC");
+      Serial.println("FUNC");   Serial1.println("FUNC");
       enableMotor(LEFT_MOTOR);
       disableMotor(RIGHT_MOTOR);
       setMotorDirection(LEFT_MOTOR, MOTOR_DIR_FORWARD);
       setMotorSpeed(LEFT_MOTOR, normalSpeed);
       break;
     case 0x44:
-      Serial.println("LEFT");
+      Serial.println("LEFT");   Serial1.println("LEFT");
       enableMotor(BOTH_MOTORS);
       setMotorSpeed(LEFT_MOTOR, normalSpeed);
       setMotorSpeed(RIGHT_MOTOR, fastSpeed);
       break;
     case 0x40:
-      Serial.println("PLAY");
+      Serial.println("PLAY");   Serial1.println("PLAY");
       disableMotor(BOTH_MOTORS);
       break;
     case 0x43:
-      Serial.println("RIGHT");
+      Serial.println("RIGHT");    Serial1.println("RIGHT");
       enableMotor(BOTH_MOTORS);
       setMotorSpeed(LEFT_MOTOR, fastSpeed);
       setMotorSpeed(RIGHT_MOTOR, normalSpeed);
       break;
     case 0x9:
-      Serial.println("UP");
+      Serial.println("UP");   Serial1.println("UP");
       break;
     case 0x15:
-      Serial.println("VOL-");
+      Serial.println("VOL-");   Serial1.println("VOL-");
       enableMotor(BOTH_MOTORS);
       setMotorDirection(BOTH_MOTORS, MOTOR_DIR_BACKWARD);
       setMotorSpeed(LEFT_MOTOR, normalSpeed);
       setMotorSpeed(RIGHT_MOTOR, normalSpeed);
       break;
     case 0x19:
-      Serial.println("EQ");
+      Serial.println("EQ");   Serial1.println("EQ");
       gripper.write(150);
       break;
     case 0xD:
-      Serial.println("ST");
+      Serial.println("ST");   Serial1.println("ST");
       gripper.write(40);
       break;
     case 0x1C:
-      Serial.println("5");
-      Serial.println("Now in Autonomous Mode");
+      Serial.println("5");  Serial1.println("5");
+      Serial.println("Now in Autonomous Mode");   Serial1.println("Now in Autonomous Mode");
       break;
     default:
       break;
@@ -204,9 +204,9 @@ void floorCalibration() {
   String btnMsg = "Push left button on Launchpad to begin calibration.\n";
   btnMsg += "Make sure the robot is on the floor away from the line.\n";
   delay(1000);
-  Serial.println("Running calibration on floor");
+  Serial.println("Running calibration on floor");   Serial1.println("Running calibration on floor");
   simpleCalibrate();      //Runs the calibration function
-  Serial.println("Reading floor values complete");
+  Serial.println("Reading floor values complete");    Serial1.println("Reading floor values complete");
   btnMsg = "Push left button on Launchpad to begin line following.\n";
   btnMsg += "Make sure the robot is on the line.\n";
   delay(1000);
@@ -225,7 +225,7 @@ void simpleCalibrate() {
   }
   disableMotor(BOTH_MOTORS);  //Disables both motors
 }
-/*
+
 void Light(){
   light = analogRead(photores);
   if (light > 0) {
@@ -234,4 +234,3 @@ void Light(){
     digitalWrite(led, LOW);
   }
 }
-*/
