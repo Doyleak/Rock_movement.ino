@@ -37,10 +37,10 @@ byte type = 0;
 byte vibrate = 0;
 
 //All the cases used in switch(STATE)
-#define IDLE 4
+#define IDLE 1
 //Cases for Gripper
-#define OPEN 5
-#define CLOSE 6
+#define OPEN 2
+#define CLOSE 3
 
 int STATE = IDLE;   //Starts the robot in the IDLE case
 #define MS 1000     //Variable for changing the milliseconds to seconds
@@ -60,20 +60,6 @@ void setup() {
   }
   type = ps2x.readType();   //Reads Controller type
 //Reads which controller is being used and prints it to the serial monitor
-  switch (type) {
-    case 0:
-      Serial.print("Unknown Controller type found "); Serial1.print("Unknown Controller type found ");
-      break;
-    case 1:
-      Serial.print("DualShock Controller found and ready to use."); Serial1.print("DualShock Controller found and ready to use.");
-      break;
-    case 2:
-      Serial.print("GuitarHero Controller found "); Serial1.print("GuitarHero Controller found ");
-      break;
-    case 3:
-      Serial.print("Wireless Sony DualShock Controller found "); Serial1.print("Wireless Sony DualShock Controller found ");
-      break;
-  }
 }
 
 void loop() {
