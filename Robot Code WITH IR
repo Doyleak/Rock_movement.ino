@@ -10,31 +10,33 @@
 #include <GP2Y0A21_Sensor.h>
 #include <QTRSensors.h>
 #include <Romi_Motor_Power.h>
-#include <RSLK_Pins.h>   //Robot pin library
-#include <SimpleRSLK.h>  //Robot library
-#include "PS2X_lib.h"    //Playstation controller library
-#include <Servo.h>       //Gripper library
-#include <TinyIRremote.h>
+#include <RSLK_Pins.h>      //Robot pin library
+#include <SimpleRSLK.h>     //Robot library
+#include "PS2X_lib.h"       //Playstation controller library
+#include <Servo.h>          //Gripper/Servo library
+#include <TinyIRremote.h>   //IR remote library
 
 //PS2 controller bluetooth dongle pins
-#define PS2_DAT         14 //P1.7 = brown wire
-#define PS2_CMD         15 //P1.6 = orange wire
-#define PS2_SEL         34 //P2.3 = yellow wire (attention)
-#define PS2_CLK         35 //P6.7 = blue wire
+#define PS2_DAT     14    //P1.7 = brown wire
+#define PS2_CMD     15    //P1.6 = orange wire
+#define PS2_SEL     34    //P2.3 = yellow wire (attention)
+#define PS2_CLK     35    //P6.7 = blue wire
 #define PS2X_DEBUG
 #define PS2X_COM_DEBUG
-#define IR_TRX_PIN 17
+
+#define IR_TRX_PIN 17     //Declares 
 
 #define pressures   false   //Not using pressure sensors on controller
 #define rumble      false   //Not using rumble on controller
 
-//All the cases used in switch(STATE)
+//The following are cases used in switch(STATE)
 #define IDLE 1
 #define AUTO 2
 //Cases for Gripper
 #define OPEN 3
 #define CLOSE 4
 #define MOVE 5
+
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 
@@ -43,6 +45,7 @@
 uint16_t normalSpeed = 20;  //Variable that sets normal speed to 20
 uint16_t fastSpeed = 28;    //Variable that sets fast speed to 28
 uint16_t turnSpeed = 40;    //Variable that sets turn speed to 40
+
 //Line following variables
 uint16_t sensorVal[LS_NUM_SENSORS];
 uint16_t sensorCalVal[LS_NUM_SENSORS];
@@ -58,8 +61,8 @@ int sharppin = 23;    //
 int stopDistance = 5; //
 int rightsensval;     //
 int leftsensval;
-int linePosition = 0; //
-int photores = A7;    //
+int linePosition = 0; //Sets the initial line postion to 0
+int photores = A7;    //Sets the light detector pin to A7
 int led = 7;          //LED pin = 7
 int light = 0;        //Light value = 0
 int Health, Weapon;   //Health and Weapons variables
@@ -70,7 +73,7 @@ PS2X ps2x;        //PS2 Controller Class and object
 Servo gripper;    //Declares Gripper as the servo object
 IRData IRHlP;     //Health Pack
 IRData IRWnP;     //Weapons Pack
-IRsend sendIR;
+IRsend sendIR;    //
 
 void setup() {
   Serial.begin(57600); Serial1.begin(57600);  //Sets the baud rate to read and print to the serial monitor.
@@ -81,16 +84,15 @@ void setup() {
   clearMinMax(sensorMinVal, sensorMaxVal);
   pinMode(led, OUTPUT);
   pinMode(photores, INPUT);
-  setupRSLK();    //Sets up the DC motor pins (aka the wheel pins)
+  setupRSLK();                //Sets up the DC motor pins (aka the wheel pins)
   ps2x.config_gamepad(PS2_CLK, PS2_CMD, PS2_SEL, PS2_DAT, pressures, rumble);   //Sets up pins and settings for the PS Controller
   delayMicroseconds(1000 * MS);   //Delay for a full second
   sendIR.begin(IR_TRX_PIN, true, GREEN_LED); 
-
 }
 
 void loop() {
-  senseLight();     //Always checks the light values using the senseLight function.
-  ps2x.read_gamepad();      //Always runs the schmoove function making the robot move.
+  senseLight();             //Always checks the light values using the senseLight function.
+  ps2x.read_gamepad();      //Reads the controller
   if (isCalibrationComplete == false) {
     floorCalibration();
     isCalibrationComplete = true;
