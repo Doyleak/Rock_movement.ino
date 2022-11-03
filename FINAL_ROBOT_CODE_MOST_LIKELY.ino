@@ -1,7 +1,6 @@
-/*  This code gets the Gripper and Playstation controller working w/Joysticks.
-    Joysticks working, but mapping needs to be fixed up.
+/*  Everything works as planned, except the light sensor is interfering with line followning.
     Date: 10/27/22
-    Author:Abigail Doyle
+    Authors: Abigail Doyle, Catherine Hodge, Noah Zahm, Nicholas Douglas 
 */
 
 //All the libraries used for the robot for work
@@ -10,11 +9,11 @@
 #include <GP2Y0A21_Sensor.h>
 #include <QTRSensors.h>
 #include <Romi_Motor_Power.h>
-#include <RSLK_Pins.h>   //Robot pin library
-#include <SimpleRSLK.h>  //Robot library
-#include "PS2X_lib.h"    //Playstation controller library
-#include <Servo.h>       //Gripper library
-#include <TinyIRremote.h>
+#include <RSLK_Pins.h>      //Robot pin library
+#include <SimpleRSLK.h>     //Robot library
+#include "PS2X_lib.h"       //Playstation controller library
+#include <Servo.h>          //Gripper library
+#include <TinyIRremote.h>   //IR library
 
 //PS2 controller bluetooth dongle pins
 #define PS2_DAT         14 //P1.7 = brown wire
@@ -23,7 +22,10 @@
 #define PS2_CLK         35 //P6.7 = blue wire
 #define PS2X_DEBUG
 #define PS2X_COM_DEBUG
+
 #define IR_TRX_PIN 17
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
 
 #define pressures   false   //Not using pressure sensors on controller
 #define rumble      false   //Not using rumble on controller
@@ -35,11 +37,10 @@
 #define OPEN 3
 #define CLOSE 4
 #define MOVE 5
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
 #define SONG 6
 
 #define MS 1000     //Variable for changing the milliseconds to seconds
+
 //Speed variables
 uint16_t normalSpeed = 25;  //Variable that sets normal speed to 20
 uint16_t fastSpeed = 33;    //Variable that sets fast speed to 28
@@ -51,7 +52,7 @@ uint16_t sensorMaxVal[LS_NUM_SENSORS];
 uint16_t sensorMinVal[LS_NUM_SENSORS];
 uint8_t lineMode = 0;
 uint8_t lineColor;
-uint32_t linePos;
+uint32_t linePos;     //Line position variable
 
 int xVal, yVal;       //Variables for x-values and y-values
 int STATE = IDLE;     //Starts the robot in the IDLE case
@@ -176,9 +177,9 @@ void schmoove() { //Reads controller
     disableMotor(BOTH_MOTORS);    //Disables both of the motors if both xVal = 0
   }
 }
-//Follow the white line autonomously
-
+//Code to shoot monsters, health, and weapon pack
 void IR() {
+  //When circle is pressed, it shoots 
   if (ps2x.ButtonPressed(PSB_CIRCLE)) {
     IRHlP.protocol = NEC;
     IRHlP.address = 160;
@@ -187,7 +188,7 @@ void IR() {
     sendIR.write(&IRHlP);
     delay(500);
   }
-
+  //When X is pressed, it shoots 
   if (ps2x.ButtonPressed(PSB_CROSS)) {
     IRWnP.protocol = NEC;
     IRWnP.address = 160;
@@ -197,8 +198,9 @@ void IR() {
     delay(500);
   }
 }
+//Follow the white line autonomously
 void autonomousState() {
-  senseLight();
+  senseLight();     //Runs the light function
   Serial.println("Now in autonomous."); Serial1.println("Now in autonomous.");
   lineColor = LIGHT_LINE;
   readLineSensor(sensorVal);
@@ -221,9 +223,6 @@ void autonomousState() {
     gripper.write(20);
     delayMicroseconds(10 * MS);
     setMotorSpeed(BOTH_MOTORS, normalSpeed);
-
-
-
   } else if ( rightsensval > 20) {
     disableMotor(BOTH_MOTORS);
     delayMicroseconds(1 * MS);
@@ -246,59 +245,30 @@ void autonomousState() {
     setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD);
     setMotorSpeed(LEFT_MOTOR, normalSpeed);
     setMotorSpeed(RIGHT_MOTOR, fastSpeed);
-  } else if (linePos > 3500) {
+  } else if(linePos > 3500) {
     setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD);
     setMotorSpeed(LEFT_MOTOR, fastSpeed);
     setMotorSpeed(RIGHT_MOTOR, normalSpeed);
-  }  else {
+  } else {
     setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD);
     setMotorSpeed(BOTH_MOTORS, normalSpeed);
-  }  if (ps2x.ButtonPressed(PSB_START)) {
+  }
+  if (ps2x.ButtonPressed(PSB_START)) {
     disableMotor(BOTH_MOTORS);
     STATE = MOVE;
-  } else if (ps2x.ButtonPressed(PSB_TRIANGLE)) {
+  } else if(ps2x.ButtonPressed(PSB_TRIANGLE)){
     disableMotor(BOTH_MOTORS);
     STATE = CLOSE;
-  }  else if (ps2x.ButtonPressed(PSB_SQUARE)) {
+  }  else if(ps2x.ButtonPressed(PSB_SQUARE)){
     disableMotor(BOTH_MOTORS);
     STATE = OPEN;
-  } else if (ps2x.ButtonPressed(PSB_SELECT)) {
+  } else if(ps2x.ButtonPressed(PSB_SELECT)){
     STATE = SONG;
   } else {
     STATE = AUTO;
   }
 }
-/*
-  //Combine with the autonomousState function
-  void autonomousDist() {
-  uint16_t normalSpeed = 18;
-  uint16_t fastSpeed = 30;
-  int distance = analogRead(sharppin);
-  Serial.println(distance);   Serial1.println(distance);
-  if (distance >= 600) {
-    disableMotor(BOTH_MOTORS);
-    delayMicroseconds(1000 * MS);
-    setMotorDirection(BOTH_MOTORS, MOTOR_DIR_BACKWARD);
-    enableMotor(BOTH_MOTORS);
-    setMotorSpeed(BOTH_MOTORS, fastSpeed);
-    delayMicroseconds(500 * MS);
-    setMotorDirection(RIGHT_MOTOR, MOTOR_DIR_FORWARD);
-    setMotorDirection(LEFT_MOTOR, MOTOR_DIR_BACKWARD);
-    enableMotor(BOTH_MOTORS);
-    setMotorSpeed(BOTH_MOTORS, fastSpeed);
-    delayMicroseconds(1000 * MS);
-    disableMotor(BOTH_MOTORS);
-    gripper.write(150);
-  } else if (distance < 600){
-    enableMotor(BOTH_MOTORS);
-    setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD);
-    setMotorSpeed(BOTH_MOTORS, fastSpeed);
-  } else {
-    setMotorSpeed(LEFT_MOTOR,normalSpeed);
-    setMotorSpeed(RIGHT_MOTOR,normalSpeed);
-  }
-  }
-*/
+//Calibrates the sensor on the bottom of the robot to the floor
 void simpleCalibrate() {
   setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD); //Set both motors direction forward
   enableMotor(BOTH_MOTORS);         //Enable both motors
@@ -311,7 +281,7 @@ void simpleCalibrate() {
   }
   disableMotor(BOTH_MOTORS);  //Disables both motors
 }
-
+//Prints out if 
 void floorCalibration() {
   delay(2000);
   String btnMsg = "Push left button on Launchpad to begin calibration.\n";
@@ -370,7 +340,7 @@ void senseLight() {
     digitalWrite(led, LOW);
   }
 }
-
+//Plays the default dance song on buzzer when select is pressed
 void playSong() {
   playNote("g4", "eighth");
   restNote("eighth");
@@ -418,13 +388,11 @@ void playSong() {
   Serial1.println(noteSpeed);
   STATE = IDLE;
 }
-
 // function used to set Buzzer Pin to a new pin number
 void setBuzzerPin(int newBuzzerPin) {
   buzzerPin = newBuzzerPin;
   pinMode(buzzerPin, OUTPUT); // Make pin 34 an output
 }
-
 // function to play a rest note with a certain type (whole, half, quarter, eighth, and sixteenth)
 void restNote(String restType) {
   if (restType == "whole") {
@@ -453,7 +421,6 @@ void restNote(String restType) {
   noTone(buzzerPin);
   delayMicroseconds(restLength * MS);
 }
-
 // function to play a note between C8 and C1 (NOTE: No rests are added between notes, they must be added manually)
 void playNote(String note, String noteType) {
   if (noteType == "whole") {
@@ -730,7 +697,6 @@ void playNote(String note, String noteType) {
     delayMicroseconds(noteLength * MS);
   }
 }
-
 //Closes the gripper
 void closeState() {
   gripper.write(95);              //Closes gripper to 30 degrees
