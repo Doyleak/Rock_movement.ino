@@ -136,7 +136,7 @@ void schmoove() { //Reads controller
   xVal = ps2x.Analog(PSS_RX);           //Assigns the variable xVal, to the right X joystick values
   xVal = map(xVal, 128, 255, 0, 20);    //Changes the xVal from 0-255 to 0-40
   yVal = ps2x.Analog(PSS_LY);           //Assigns the variable yVal, to the left Y joystick values
-  yVal = map(yVal, 127, 255, 0, 60);    //Changes the yVal from 0-255 to 0-40
+  yVal = map(yVal, 127, 255, 0, 50);    //Changes the yVal from 0-255 to 0-40
   if (yVal < 0) {          //If the yVal is less than 0, go forward
     setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD);  //Sets both motors to forward
     enableMotor(BOTH_MOTORS);   //Turns on both motors
