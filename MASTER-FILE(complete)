@@ -50,7 +50,7 @@ uint8_t lineColor;
 uint32_t linePos;
 
 int xVal, yVal;       //Variables for x-values and y-values
-int STATE = IDLE;     //Starts the robot in the IDLE case
+int STATE = MOVE;     //Starts the robot in the MOVE case
 int sharppin = 23;    //
 int stopDistance = 5; //
 int rightsensval;     //
