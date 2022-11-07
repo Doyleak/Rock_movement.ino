@@ -1,5 +1,5 @@
-/*  This code gets the Gripper and Playstation controller working w/Joysticks.
-    Joysticks working, but mapping needs to be fixed up.
+/*  This is the final completed code for our robot.
+    
     Date: 10/27/22
     Author:Abigail Doyle
 */
@@ -10,23 +10,22 @@
 #include <GP2Y0A21_Sensor.h>
 #include <QTRSensors.h>
 #include <Romi_Motor_Power.h>
-#include <RSLK_Pins.h>   //Robot pin library
-#include <SimpleRSLK.h>  //Robot library
-#include "PS2X_lib.h"    //Playstation controller library
-#include <Servo.h>       //Gripper library
-#include <TinyIRremote.h>
+#include <RSLK_Pins.h>      //Robot pin library
+#include <SimpleRSLK.h>     //Robot library
+#include "PS2X_lib.h"       //Playstation controller library
+#include <Servo.h>          //Gripper library
+#include <TinyIRremote.h>   //IR library
 
 //PS2 controller bluetooth dongle pins
 #define PS2_DAT         14 //P1.7 = brown wire
 #define PS2_CMD         15 //P1.6 = orange wire
 #define PS2_SEL         34 //P2.3 = yellow wire (attention)
 #define PS2_CLK         35 //P6.7 = blue wire
-#define PS2X_DEBUG
-#define PS2X_COM_DEBUG
-#define IR_TRX_PIN 17
+#define PS2X_DEBUG         //
+#define PS2X_COM_DEBUG     //
 
-#define pressures   false   //Not using pressure sensors on controller
-#define rumble      false   //Not using rumble on controller
+
+
 
 //All the cases used in switch(STATE)
 #define IDLE 1
@@ -39,7 +38,11 @@
 #define STR(x) STR_HELPER(x)
 #define SONG 6
 
-#define MS 1000     //Variable for changing the milliseconds to seconds
+#define MS 1000             //Variable for changing the milliseconds to seconds
+#define pressures   false   //Not using pressure sensors on controller
+#define rumble      false   //Not using rumble on controller
+#define IR_TRX_PIN 17      //
+
 //Speed variables
 uint16_t normalSpeed = 25;  //Variable that sets normal speed to 20
 uint16_t fastSpeed = 33;    //Variable that sets fast speed to 28
@@ -71,36 +74,38 @@ PS2X ps2x;        //PS2 Controller Class and object
 Servo gripper;    //Declares Gripper as the servo object
 IRData IRHlP;     //Health Pack
 IRData IRWnP;     //Weapons Pack
-IRsend sendIR;
+IRsend sendIR;    //
 
 // Fortnite Buzzer Constants
-int buzzerPin = -1; // buzzer pin is not assigned to anything specific until setup, just set to 0
-int noteLength = 0; // noteLength assigned to default value, isn't used
-int restLength = 0; // restLength assigned to default value, isn't used
+int buzzerPin = -1;         // buzzer pin is not assigned to anything specific until setup, just set to 0
+int noteLength = 0;         // noteLength assigned to default value, isn't used
+int restLength = 0;         // restLength assigned to default value, isn't used
 bool testingBuzzer = false; // testingBuzzer assigned to default value, false
-float noteSpeed = 0.125; // speed of the notes/rests. 1 being normal tempo, 2 being twice as slow, and 0.5 being twice as fast
+float noteSpeed = 0.125;    // speed of the notes/rests. 1 being normal tempo, 2 being twice as slow, and 0.5 being twice as fast
 
 void setup() {
   Serial.begin(57600); Serial1.begin(57600);  //Sets the baud rate to read and print to the serial monitor.
-  gripper.attach(SRV_0);    //Initializes the gripper servo
+  gripper.attach(SRV_0);        //Initializes the gripper servo
   //Sets the grippers position to 5 degrees when program is first run
-  pinMode(sharppin, INPUT);
-  setupLed(RED_LED);
-  clearMinMax(sensorMinVal, sensorMaxVal);
-  pinMode(led, OUTPUT);
-  pinMode(photores, INPUT);
-  setupRSLK();    //Sets up the DC motor pins (aka the wheel pins)
+  pinMode(sharppin, INPUT);       //
+  setupLed(RED_LED);              //
+  clearMinMax(sensorMinVal, sensorMaxVal);      //
+  pinMode(led, OUTPUT);           //
+  pinMode(photores, INPUT);       //
+  setupRSLK();        //Sets up the DC motor pins (aka the wheel pins)
   ps2x.config_gamepad(PS2_CLK, PS2_CMD, PS2_SEL, PS2_DAT, pressures, rumble);   //Sets up pins and settings for the PS Controller
-  delayMicroseconds(1000 * MS);   //Delay for a full second
-  sendIR.begin(IR_TRX_PIN, true, GREEN_LED);
-  setBuzzerPin(37); // default pin for the buzzer
-  if (buzzerPin == -1) { // test to make sure buzzer pin is initially assigned
+  delayMicroseconds(1000 * MS);       //Delay for a full second
+  sendIR.begin(IR_TRX_PIN, true, GREEN_LED);    //
+  setBuzzerPin(37);           //Buzzer pin
+  if (buzzerPin == -1) { // test to make sure buzzer pin is initially assigned      //
     Serial1.println("Error: Buzzer Pin Assignment Failed");
   }
 }
 
+//Repeats endlessly until robot loses power.
 void loop() {
-  ps2x.read_gamepad();      //Always runs the schmoove function making the robot move.
+  ps2x.read_gamepad();      //Constantly reads the Playstation controller buttons
+  //If calibration isn't complete, then it runs the floor calibration, then goes into the idle state.
   if (isCalibrationComplete == false) {
     floorCalibration();
     isCalibrationComplete = true;
@@ -130,7 +135,7 @@ void loop() {
       break;
   }
 }
-//This function constantly reads the joystick values and makes the robot move
+//This function reads the joystick values and makes the robot move.
 void schmoove() { //Reads controller
   delayMicroseconds(50 * MS);
   xVal = ps2x.Analog(PSS_RX);           //Assigns the variable xVal, to the right X joystick values
