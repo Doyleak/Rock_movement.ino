@@ -181,64 +181,67 @@ void schmoove() { //Reads controller
     disableMotor(BOTH_MOTORS);    //Disables both of the motors if both xVal = 0
   }
 }
-//Follow the white line autonomously
 
+//This function sends decimal values to a health pack, monster, or weapons pack to "shoot them" using the IR sensor and LED. 
 void IR() {
   if (ps2x.ButtonPressed(PSB_CIRCLE)) {
-    IRHlP.protocol = NEC;
-    IRHlP.address = 160;
-    IRHlP.command = 123;
+    IRHlP.protocol = NEC;           //Sets up necessary conditions to transmit a signal (lines 188-191)
+    IRHlP.address = 160;                     
+    IRHlP.command = 123;                    
     IRHlP.isRepeat = false;
-    sendIR.write(&IRHlP);
+    sendIR.write(&IRHlP);          //Transmits IR signal to health pack
     delay(500);
   }
 
   if (ps2x.ButtonPressed(PSB_CROSS)) {
-    IRWnP.protocol = NEC;
+    IRWnP.protocol = NEC;          //Sets up necessary conditions to transmit a signal (lines 197 -200)
     IRWnP.address = 160;
     IRWnP.command = 143;
     IRWnP.isRepeat = false;
-    sendIR.write(&IRWnP);
+    sendIR.write(&IRWnP);          //Transmits IR signal to weapons pack
     delay(500);
   }
 }
+//Monster recieves both signals
+
+//This allows the robot to follow the white line
 void autonomousState() {
-  senseLight();
+  senseLight();                     //Calls the senseLight function
   Serial.println("Now in autonomous."); Serial1.println("Now in autonomous.");
-  lineColor = LIGHT_LINE;
-  readLineSensor(sensorVal);
-  readCalLineSensor(sensorVal, sensorCalVal, sensorMinVal, sensorMaxVal, lineColor);
-  linePos = getLinePosition(sensorCalVal, lineColor);
-  enableMotor(BOTH_MOTORS);
-  Serial.println(sensorCalVal[7]);
-  rightsensval = sensorCalVal[7];
+  lineColor = LIGHT_LINE;           //Defines the line as a light line rather than a dark line from the library
+  readLineSensor(sensorVal);        //Reads the line sensor values
+  readCalLineSensor(sensorVal, sensorCalVal, sensorMinVal, sensorMaxVal, lineColor);        //Reads values from the arrays
+  linePos = getLinePosition(sensorCalVal, lineColor);       //Assigns getLinePosition to linePos
+  enableMotor(BOTH_MOTORS);         //Turns on both motors
+  Serial.println(sensorCalVal[7]);  //Prints sensor array values to the serial monitor
+  rightsensval = sensorCalVal[7];   //Assigns sensorCalVal 7 to rightsensval
   Serial.println(sensorCalVal[0]);
-  leftsensval = sensorCalVal[0];
-  if (rightsensval > 20 && leftsensval > 20) {
+  leftsensval = sensorCalVal[0];    //Assigns sensorCalVal 0 to leftsensval
+  if (rightsensval > 20 && leftsensval > 20) {      //If statement that turns the robot to the right if both variable values are greater than 20
     disableMotor(BOTH_MOTORS);
-    setMotorDirection(RIGHT_MOTOR, MOTOR_DIR_FORWARD);
-    setMotorDirection(LEFT_MOTOR, MOTOR_DIR_BACKWARD);
+    setMotorDirection(RIGHT_MOTOR, MOTOR_DIR_FORWARD);  //Turns the right motor forward
+    setMotorDirection(LEFT_MOTOR, MOTOR_DIR_BACKWARD);  //Turns the left motor backward
     enableMotor(BOTH_MOTORS);
-    setMotorSpeed(BOTH_MOTORS, normalSpeed);
-    delayMicroseconds(1200 * MS);
-    setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD);
+    setMotorSpeed(BOTH_MOTORS, normalSpeed);       //Sets both motor speeds to the normal speed
+    delayMicroseconds(1200 * MS);                  //Delays long enough to complete the turn around the corner
+    setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD);  //Sets both motor directions forward after the turn
     delayMicroseconds(500 * MS);
-    gripper.write(20);
+    gripper.write(20);                             //Opens gripper to drop Rosie
     delayMicroseconds(10 * MS);
-    setMotorSpeed(BOTH_MOTORS, normalSpeed);
+    setMotorSpeed(BOTH_MOTORS, normalSpeed);  
 
 
 
-  } else if ( rightsensval > 20) {
-    disableMotor(BOTH_MOTORS);
+  } else if ( rightsensval > 20) {  //Turns robot to the right
+    disableMotor(BOTH_MOTORS);      //Turns both motors off
     delayMicroseconds(1 * MS);
-    setMotorDirection(RIGHT_MOTOR, MOTOR_DIR_BACKWARD);
-    setMotorDirection(LEFT_MOTOR, MOTOR_DIR_FORWARD);
-    enableMotor(BOTH_MOTORS);
+    setMotorDirection(RIGHT_MOTOR, MOTOR_DIR_BACKWARD);   //Turns right motor backward
+    setMotorDirection(LEFT_MOTOR, MOTOR_DIR_FORWARD);     //Turns left motor forward
+    enableMotor(BOTH_MOTORS);                             //Turns robot to the left
     setMotorSpeed(BOTH_MOTORS, normalSpeed);
     delayMicroseconds(20 * MS);
     disableMotor(BOTH_MOTORS);
-  } else if ( leftsensval > 20) {
+  } else if ( leftsensval > 20) {   //Turns robot to the left
     disableMotor(BOTH_MOTORS);
     delayMicroseconds(1 * MS);
     setMotorDirection(RIGHT_MOTOR, MOTOR_DIR_FORWARD);
@@ -247,33 +250,34 @@ void autonomousState() {
     setMotorSpeed(BOTH_MOTORS, normalSpeed);
     delayMicroseconds(20 * MS);
     disableMotor(BOTH_MOTORS);
-  } else if (linePos > 0 && linePos < 3000) {
+  } else if (linePos > 0 && linePos < 3000) {       //If linePos is within these bounds, turn robot.
     setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD);
     setMotorSpeed(LEFT_MOTOR, normalSpeed);
     setMotorSpeed(RIGHT_MOTOR, fastSpeed);
-  } else if (linePos > 3500) {
+  } else if (linePos > 3500) {                      //If linePos is within these bounds, turn robot the other direction. 
     setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD);
     setMotorSpeed(LEFT_MOTOR, fastSpeed);
     setMotorSpeed(RIGHT_MOTOR, normalSpeed);
-  }  else {
+  }  else {                                         //Moves robot forward
     setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD);
     setMotorSpeed(BOTH_MOTORS, normalSpeed);
-  }  if (ps2x.ButtonPressed(PSB_START)) {
+  }  if (ps2x.ButtonPressed(PSB_START)) {           //Disables autonomous mode if Start button is pressed
     disableMotor(BOTH_MOTORS);
-    STATE = MOVE;
-  } else if (ps2x.ButtonPressed(PSB_TRIANGLE)) {
+    STATE = MOVE;                                   //Sets state to Move (manual mode)
+  } else if (ps2x.ButtonPressed(PSB_TRIANGLE)) {    //If the triangle button is pressed, stops robot and closes gripper
     disableMotor(BOTH_MOTORS);
     STATE = CLOSE;
-  }  else if (ps2x.ButtonPressed(PSB_SQUARE)) {
+  }  else if (ps2x.ButtonPressed(PSB_SQUARE)) {     //If the square button is pressed, stops robot and opens gripper
     disableMotor(BOTH_MOTORS);
     STATE = OPEN;
-  } else if (ps2x.ButtonPressed(PSB_SELECT)) {
+  } else if (ps2x.ButtonPressed(PSB_SELECT)) {      //If the select button is pressed, plays Fortnite song
     STATE = SONG;
-  } else {
+  } else {                                          //If no other button is pressed, autonomous mode is in effect
     STATE = AUTO;
   }
 }
 
+//This function calibrates the sensor
 void simpleCalibrate() {
   setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD); //Set both motors direction forward
   enableMotor(BOTH_MOTORS);         //Enable both motors
@@ -282,17 +286,18 @@ void simpleCalibrate() {
     readLineSensor(sensorVal);
     setSensorMinMax(sensorVal, sensorMinVal, sensorMaxVal);
     readCalLineSensor(sensorVal, sensorCalVal, sensorMinVal, sensorMaxVal, 0);
-    linePosition = getLinePosition(sensorCalVal, lineMode);
+    linePosition = getLinePosition(sensorCalVal, lineMode);     //Assigns sensorCalVal and lineMode to linePosition
   }
   disableMotor(BOTH_MOTORS);  //Disables both motors
 }
 
+//This function calibrates the sensors to the floor
 void floorCalibration() {
   delay(2000);
-  String btnMsg = "Push left button on Launchpad to begin calibration.\n";
-  btnMsg += "Make sure the robot is on the floor away from the line.\n";
+  String btnMsg = "Push left button on Launchpad to begin calibration.\n";      //String message that requires the button on the robot to be pressed
+  btnMsg += "Make sure the robot is on the floor away from the line.\n";        //Button message that requires the robot to be away from the line. 
   delay(1000);
-  Serial.println("Running calibration on floor");   Serial1.println("Running calibration on floor");
+  Serial.println("Running calibration on floor");   Serial1.println("Running calibration on floor");    //Prints to the Serial monitor
   simpleCalibrate();      //Runs the calibration function
   Serial.println("Reading floor values complete");    Serial1.println("Reading floor values complete");
   delay(1000);
@@ -301,17 +306,18 @@ void floorCalibration() {
 
 //Senses the light value
 void senseLight() {
-  light = analogRead(photores);
-  if (light < 150) {
-    digitalWrite(led, HIGH);
+  light = analogRead(photores);     //Assigns the analog read of the photoresisitor to the light variable.
+  if (light < 150) {                //If the light is less than 150, turn the light on. 
+    digitalWrite(led, HIGH);        //Turns the LED on
   } else {
-    digitalWrite(led, LOW);
+    digitalWrite(led, LOW);         //Turns the LED off
   }
 }
 
+//This plays the notes of the Fortnite song
 void playSong() {
-  playNote("g4", "eighth");
-  restNote("eighth");
+  playNote("g4", "eighth");         //Plays a certain note for a certain type
+  restNote("eighth");               //Rests a certain type
   restNote("quarter");
   playNote("g4", "quarter");
   restNote("sixteenth");
@@ -358,7 +364,7 @@ void playSong() {
 }
 
 // function used to set Buzzer Pin to a new pin number
-void setBuzzerPin(int newBuzzerPin) {
+void setBuzzerPin(int newBuzzerPin) {      
   buzzerPin = newBuzzerPin;
   pinMode(buzzerPin, OUTPUT); // Make pin 34 an output
 }
